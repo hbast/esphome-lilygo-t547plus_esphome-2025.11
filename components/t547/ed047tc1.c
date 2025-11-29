@@ -45,6 +45,7 @@ typedef struct
 /******************************************************************************/
 
 static epd_config_register_t config_reg;
+static ed047tc1_config_t epd_config;
 
 /******************************************************************************/
 /***        exported functions                                              ***/
@@ -52,35 +53,34 @@ static epd_config_register_t config_reg;
 
 /*
  * Write bits directly using the registers.
- * Won't work for some pins (>= 32).
  */
 inline static void fast_gpio_set_hi(gpio_num_t gpio_num)
 {
-    GPIO.out_w1ts = (1 << gpio_num);
+    gpio_set_level(gpio_num, 1);
 }
 
 inline static void fast_gpio_set_lo(gpio_num_t gpio_num)
 {
-    GPIO.out_w1tc = (1 << gpio_num);
+    gpio_set_level(gpio_num, 0);
 }
 
 inline static void IRAM_ATTR push_cfg_bit(bool bit)
 {
-    fast_gpio_set_lo(CFG_CLK);
+    fast_gpio_set_lo(epd_config.cfg_clk);
     if (bit)
     {
-        fast_gpio_set_hi(CFG_DATA);
+        fast_gpio_set_hi(epd_config.cfg_data);
     }
     else
     {
-        fast_gpio_set_lo(CFG_DATA);
+        fast_gpio_set_lo(epd_config.cfg_data);
     }
-    fast_gpio_set_hi(CFG_CLK);
+    fast_gpio_set_hi(epd_config.cfg_clk);
 }
 
 static void IRAM_ATTR push_cfg(epd_config_register_t *cfg)
 {
-    fast_gpio_set_lo(CFG_STR);
+    fast_gpio_set_lo(epd_config.cfg_str);
 
     // push config bits in reverse order
     push_cfg_bit(cfg->ep_output_enable);
@@ -93,7 +93,7 @@ static void IRAM_ATTR push_cfg(epd_config_register_t *cfg)
     push_cfg_bit(cfg->power_disable);
     push_cfg_bit(cfg->ep_latch_enable);
 
-    fast_gpio_set_hi(CFG_STR);
+    fast_gpio_set_hi(epd_config.cfg_str);
 }
 
 
@@ -104,8 +104,10 @@ void IRAM_ATTR busy_delay(uint32_t cycles)
 }
 
 
-void epd_base_init(uint32_t epd_row_width)
+void epd_base_init(uint32_t epd_row_width, const ed047tc1_config_t *config)
 {
+    memcpy(&epd_config, config, sizeof(ed047tc1_config_t));
+
     config_reg.ep_latch_enable = false;
     config_reg.power_disable = true;
     config_reg.pos_power_enable = false;
@@ -116,10 +118,10 @@ void epd_base_init(uint32_t epd_row_width)
     config_reg.ep_output_enable = false;
 
     /* Power Control Output/Off */
-    gpio_set_direction(CFG_DATA, GPIO_MODE_OUTPUT);
-    gpio_set_direction(CFG_CLK, GPIO_MODE_OUTPUT);
-    gpio_set_direction(CFG_STR, GPIO_MODE_OUTPUT);
-    fast_gpio_set_lo(CFG_STR);
+    gpio_set_direction(epd_config.cfg_data, GPIO_MODE_OUTPUT);
+    gpio_set_direction(epd_config.cfg_clk, GPIO_MODE_OUTPUT);
+    gpio_set_direction(epd_config.cfg_str, GPIO_MODE_OUTPUT);
+    fast_gpio_set_lo(epd_config.cfg_str);
 
     push_cfg(&config_reg);
 
@@ -127,20 +129,20 @@ void epd_base_init(uint32_t epd_row_width)
     i2s_bus_config i2s_config;
     // add an offset off dummy bytes to allow for enough timing headroom
     i2s_config.epd_row_width = epd_row_width + 32;
-    i2s_config.clock = CKH;
-    i2s_config.start_pulse = STH;
-    i2s_config.data_0 = D0;
-    i2s_config.data_1 = D1;
-    i2s_config.data_2 = D2;
-    i2s_config.data_3 = D3;
-    i2s_config.data_4 = D4;
-    i2s_config.data_5 = D5;
-    i2s_config.data_6 = D6;
-    i2s_config.data_7 = D7;
+    i2s_config.clock = epd_config.ckh;
+    i2s_config.start_pulse = epd_config.sth;
+    i2s_config.data_0 = epd_config.d0;
+    i2s_config.data_1 = epd_config.d1;
+    i2s_config.data_2 = epd_config.d2;
+    i2s_config.data_3 = epd_config.d3;
+    i2s_config.data_4 = epd_config.d4;
+    i2s_config.data_5 = epd_config.d5;
+    i2s_config.data_6 = epd_config.d6;
+    i2s_config.data_7 = epd_config.d7;
 
     i2s_bus_init(&i2s_config);
 
-    rmt_pulse_init(CKV);
+    rmt_pulse_init(epd_config.ckv);
 }
 
 void epd_poweron()
@@ -157,7 +159,7 @@ void epd_poweron()
     busy_delay(100 * 240);
     config_reg.ep_stv = true;
     push_cfg(&config_reg);
-    fast_gpio_set_hi(STH);
+    fast_gpio_set_hi(epd_config.sth);
 }
 
 void epd_poweroff()

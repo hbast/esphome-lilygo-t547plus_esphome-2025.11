@@ -21,7 +21,7 @@ void T547::setup() {
   ESP_LOGI(TAG, "Total PSRAM: %d bytes", heap_caps_get_total_size(MALLOC_CAP_SPIRAM));
   ESP_LOGI(TAG, "Largest free PSRAM block: %d bytes", heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
   
-  epd_init();
+  epd_init(&this->pin_config_);
   uint32_t buffer_size = this->get_buffer_length_();
   ESP_LOGI(TAG, "Required buffer size: %d bytes (%.2f KB)", buffer_size, buffer_size / 1024.0);
 

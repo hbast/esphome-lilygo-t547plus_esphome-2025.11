@@ -2,26 +2,6 @@ esphome:
   name: lilygo
   friendly_name: lilygo e-ink display
 
-  platformio_options:
-    upload_speed: 921600
-    monitor_speed: 115200
-    board_build.mcu: esp32s3
-    board_build.f_cpu: 240000000L
-    board_build.arduino.memory_type: qspi_opi
-    board_build.flash_size: 4MB
-    board_build.flash_mode: qio
-    board_build.flash_type: qspi
-    board_build.psram_type: opi
-    board_build.memory_type: qspi_opi
-    board_build.boot_freq: 80m
-    build_flags:
-      - "-DBOARD_HAS_PSRAM"
-      - "-DARDUINO_USB_CDC_ON_BOOT=1"
-      - "-mfix-esp32-psram-cache-issue"
-
-  libraries:
-    - SPI
-
 esp32:
   board: esp32-s3-devkitc-1
   framework:
@@ -62,7 +42,9 @@ wifi:
 captive_portal:
 
 external_components:
-  - source: github://dabalroman/esphome-lilygo-t547plus_esphome-2025.11
+  - source:
+      type: local
+      path: components
     components: ["t547"]
 
 font:

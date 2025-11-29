@@ -152,10 +152,10 @@ static const DRAM_ATTR uint32_t lut_1bpp[256] = {
 /***        exported functions                                              ***/
 /******************************************************************************/
 
-void epd_init()
+void epd_init(const ed047tc1_config_t *config)
 {
     skipping = 0;
-    epd_base_init(EPD_WIDTH);
+    epd_base_init(EPD_WIDTH, config);
 
     conversion_lut = (uint8_t *)heap_caps_malloc(1 << 16, MALLOC_CAP_8BIT);
     assert(conversion_lut != NULL);

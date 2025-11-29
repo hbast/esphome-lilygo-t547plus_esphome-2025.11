@@ -1,0 +1,38 @@
+esphome:
+  name: lilygo-t547-test
+  friendly_name: LilyGo T5-4.7 Test
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "LilyGo Fallback Hotspot"
+
+external_components:
+  - source:
+      type: local
+      path: components
+    components: ["t547"]
+
+display:
+  - platform: t547
+    id: my_display
+    update_interval: 30s
+    lambda: |-
+      it.line(0, 0, 960, 540);
+      it.line(0, 540, 960, 0);

@@ -10,27 +10,6 @@ esphome:
             ESP_LOGI("boot", "Free PSRAM: %d bytes", heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
             ESP_LOGI("boot", "Total PSRAM: %d bytes", heap_caps_get_total_size(MALLOC_CAP_SPIRAM));
 
-  platformio_options:
-    # Unless noted otherwise, based on https://github.com/Xinyuan-LilyGO/LilyGo-EPD47/blob/1eb6119fc31fcff7a6bafecb09f4225313859fc5/examples/demo/platformio.ini#L37
-    upload_speed: 921600
-    monitor_speed: 115200
-    board_build.mcu: esp32s3
-    board_build.f_cpu: 240000000L
-    board_build.arduino.memory_type: qspi_opi
-    board_build.flash_size: 16MB
-    board_build.flash_mode: qio
-    board_build.flash_type: qspi
-    board_build.psram_type: opi
-    board_build.memory_type: qspi_opi
-    board_build.boot_freq: 80m
-    build_flags:
-      - "-DBOARD_HAS_PSRAM"                    # Enable PSRAM support in code
-      - "-DARDUINO_USB_CDC_ON_BOOT=1"          # Enable USB Serial on boot
-      - "-mfix-esp32-psram-cache-issue"        # Hardware workaround for PSRAM cache bug
-
-  libraries:
-    - SPI
-
 esp32:
   variant: esp32s3
   board: esp32-s3-devkitc-1
@@ -84,14 +63,10 @@ binary_sensor:
       - logger.log: PhysButton Pressed
 
 external_components:
-  # Use GitHub source for Home Assistant
-  - source: github://dabalroman/esphome-lilygo-t547plus_esphome-2025.11
+  - source:
+      type: local
+      path: components
     components: ["t547"]
-  # For local development, uncomment this instead:
-  # source:
-  #   type: local
-  #   path: components/
-  # components: ["t547"]
 
 display:
   - platform: t547

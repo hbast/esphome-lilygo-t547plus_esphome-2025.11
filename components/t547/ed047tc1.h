@@ -17,61 +17,26 @@ extern "C" {
 /***        macro definitions                                               ***/
 /******************************************************************************/
 
-#if CONFIG_IDF_TARGET_ESP32
-
-/* Config Reggister Control */
-#define CFG_DATA GPIO_NUM_23
-#define CFG_CLK GPIO_NUM_18
-#define CFG_STR GPIO_NUM_0
-
-/* Control Lines */
-#define CKV GPIO_NUM_25
-#define STH GPIO_NUM_26
-
-/* Edges */
-#define CKH GPIO_NUM_5
-
-/* Data Lines */
-#define D7 GPIO_NUM_22
-#define D6 GPIO_NUM_21
-#define D5 GPIO_NUM_27
-#define D4 GPIO_NUM_2
-#define D3 GPIO_NUM_19
-#define D2 GPIO_NUM_4
-#define D1 GPIO_NUM_32
-#define D0 GPIO_NUM_33
-
-#elif CONFIG_IDF_TARGET_ESP32S3
-
-/* Config Reggister Control */
-#define CFG_DATA GPIO_NUM_13
-#define CFG_CLK GPIO_NUM_12
-#define CFG_STR GPIO_NUM_0
-
-/* Control Lines */
-#define CKV GPIO_NUM_38
-#define STH GPIO_NUM_40
-
-/* Edges */
-#define CKH GPIO_NUM_41
-
-/* Data Lines */
-#define D7 GPIO_NUM_7
-#define D6 GPIO_NUM_6
-#define D5 GPIO_NUM_5
-#define D4 GPIO_NUM_4
-#define D3 GPIO_NUM_3
-#define D2 GPIO_NUM_2
-#define D1 GPIO_NUM_1
-#define D0 GPIO_NUM_8
-
-#else
-    #error "Unknown SOC"
-#endif
-
 /******************************************************************************/
 /***        type definitions                                                ***/
 /******************************************************************************/
+
+typedef struct {
+    gpio_num_t cfg_data;
+    gpio_num_t cfg_clk;
+    gpio_num_t cfg_str;
+    gpio_num_t ckv;
+    gpio_num_t sth;
+    gpio_num_t ckh;
+    gpio_num_t d7;
+    gpio_num_t d6;
+    gpio_num_t d5;
+    gpio_num_t d4;
+    gpio_num_t d3;
+    gpio_num_t d2;
+    gpio_num_t d1;
+    gpio_num_t d0;
+} ed047tc1_config_t;
 
 /******************************************************************************/
 /***        exported variables                                              ***/
@@ -81,7 +46,7 @@ extern "C" {
 /***        exported functions                                              ***/
 /******************************************************************************/
 
-void epd_base_init(uint32_t epd_row_width);
+void epd_base_init(uint32_t epd_row_width, const ed047tc1_config_t *config);
 void epd_poweron();
 void epd_poweroff();
 

@@ -370,7 +370,7 @@ void i2s_bus_init(i2s_bus_config *cfg)
     ESP_LOGI(TAG, "Initialize Intel 8080 bus");
     esp_lcd_i80_bus_handle_t i80_bus = NULL;
     esp_lcd_i80_bus_config_t bus_config = {
-        .clk_src = LCD_CLK_SRC_DEFAULT,
+        .clk_src = LCD_CLK_SRC_PLL160M,
         .dc_gpio_num = cfg->start_pulse,
         .wr_gpio_num = cfg->clock,
         .data_gpio_nums = {

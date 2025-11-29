@@ -6,6 +6,7 @@
 #include "esphome/components/display/display_buffer.h"
 
 #include "epd_driver.h"
+#include "ed047tc1.h"
 
 #ifdef USE_ESP32_FRAMEWORK_ARDUINO
 
@@ -20,6 +21,10 @@ class T547 : public PollingComponent, public display::DisplayBuffer {
  public:
   void set_greyscale(bool greyscale) {
     this->greyscale_ = greyscale;
+  }
+
+  void set_pin_config(const ed047tc1_config_t &config) {
+    this->pin_config_ = config;
   }
 
   float get_setup_priority() const override;
@@ -55,6 +60,7 @@ class T547 : public PollingComponent, public display::DisplayBuffer {
   size_t get_buffer_length_();
 
 
+  ed047tc1_config_t pin_config_;
   uint8_t panel_on_ = 0;
   uint8_t temperature_;
 

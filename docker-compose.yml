@@ -1,0 +1,13 @@
+services:
+  esphome:
+    container_name: esphome
+    image: ghcr.io/esphome/esphome:latest
+    volumes:
+      - ./:/config
+      - /etc/localtime:/etc/localtime:ro
+    # USB device access - privileged mode for macOS/OrbStack
+    privileged: true
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - ESPHOME_DASHBOARD_USE_PING=true

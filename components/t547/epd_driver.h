@@ -18,6 +18,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 #include "utilities.h"
+#include "ed047tc1.h"
 /******************************************************************************/
 /***        macro definitions                                               ***/
 /******************************************************************************/
@@ -87,7 +88,7 @@ typedef struct
 /**
  * @brief Initialize the ePaper display
  */
-void epd_init();
+void epd_init(const ed047tc1_config_t *config);
 
 /**
  * @brief Enable display power supply.
