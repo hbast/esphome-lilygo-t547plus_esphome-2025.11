@@ -26,14 +26,21 @@ This document outlines the necessary steps to prepare the component for submissi
 
 ## 3. Cleanup & Separation of Concerns
 - [ ] **Remove Touch Driver**:
-    - **Current State**: `touch.cpp` is bundled.
-    - **Action**: **Delete it.**
+    - **Current State**: `touch.cpp` and `touch.h` are bundled.
+    - **Action**: **Delete them.**
     - **Reasoning**: Touchscreens are separate components in ESPHome (`touchscreen` platform).
     - **Solution**: Create a separate component (or use an existing one) for the specific touch controller (L58) used on this board. Users will add a `touchscreen:` entry to their YAML.
-- [ ] **Remove Font Engine**:
-    - **Current State**: `font.c` exists.
-    - **Action**: **Delete it.**
+    - **Analysis**: ✅ Verified - `touch.cpp` and `touch.h` are completely isolated with **zero dependencies**. They contain an Arduino-only `TouchClass` wrapper for I2C touch controller (address 0x5A) with methods like `scanPoint()`, `getPoint()`, `sleep()`, `wakeup()`. Not referenced anywhere in:
+        - C++ files (`t547.cpp`, `epd_driver.c`, etc.)
+        - Build system (`CMakeLists.txt`, `component.mk`)
+        - Python integration (`__init__.py`)
+    - **Recommendation**: Users should use ESPHome's built-in `touchscreen` platform with `lilygo_t5_47` component, which provides superior interrupt-based touch handling.
+- [x] **Remove Font Engine**:
+    - **Current State**: ~~`font.c` exists~~ **DELETED** ✅
+    - **Action**: ~~**Delete it.**~~ **COMPLETED**
     - **Reasoning**: ESPHome has a powerful native font engine. The display driver just needs to implement `draw_absolute_pixel`.
+    - **Analysis**: ✅ `font.c` was **dead code** - never integrated into ESPHome component. Contained UTF-8 text rendering functions (`writeln()`, `write_string()`, `get_text_bounds()`) with GFX font support, but had **no callers** anywhere in the codebase. Also removed related structures (`GFXfont`, `GFXglyph`, `FontProperties`) from `epd_driver.h`.
+    - **Verification**: Compilation succeeded after removal (ESPHome 2025.11.2, Flash: 58.5%, RAM: 12.7%).
 - [ ] **Battery Monitoring**:
     - **Action**: Do not add battery logic to this component.
     - **Reasoning**: Use the standard `adc` sensor component in the user's YAML to read battery voltage.
