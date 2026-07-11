@@ -1,0 +1,22 @@
+esphome:
+  name: lilygo-t5-47-plus-grayscale
+  friendly_name: LILYGO T5 4.7 Plus Grayscale
+
+packages:
+  lilygo_t5_47_plus: github://hbast/lilygo_t5_47_plus/packages/lilygo_t5_47_plus.yaml@main
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
+display:
+  - platform: lilygo_t5_47_plus
+    id: epaper
+    update_interval: 60s
+    lambda: |-
+      it.fill(COLOR_OFF);
+      const int bar_width = 60;
+      for (int level = 0; level < 16; level++) {
+        const uint8_t value = level * 17;
+        it.filled_rectangle(level * bar_width, 120, bar_width, 300,
+                            Color(value, value, value));
+      }

@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+
+ESPHOME_VERSION="${ESPHOME_VERSION:-2026.6}"
+DEV_IMAGE="${DEV_IMAGE:-lilygo-t5-47-plus-dev:${ESPHOME_VERSION}}"
+PLATFORMIO_VOLUME="${PLATFORMIO_VOLUME:-lilygo-t5-47-plus-platformio-${ESPHOME_VERSION}}"
+ESPHOME_CACHE_VOLUME="${ESPHOME_CACHE_VOLUME:-lilygo-t5-47-plus-cache-${ESPHOME_VERSION}}"
+
+usage() {
+  cat <<'EOF'
+Usage: ./scripts/dev <command> [arguments]
+
+Commands:
+  build                  Build the pinned ESPHome development image
+  version                Print the ESPHome version in the container
+  config <file.yaml>     Validate an ESPHome configuration
+  compile <file.yaml>    Compile firmware entirely inside Docker
+  clean <file.yaml>      Remove build files for one configuration
+  run <args...>          Run any ESPHome CLI command
+  shell                  Open a shell in the development container
+
+Environment overrides:
+  ESPHOME_VERSION        ESPHome YEAR.MONTH image tag (default: 2026.6)
+  DEV_IMAGE              Local Docker image name
+  PLATFORMIO_VOLUME      Docker volume for PlatformIO toolchains
+  ESPHOME_CACHE_VOLUME   Docker volume for ESPHome build/cache files
+EOF
+}
+
+build_image() {
+  docker build \
+    --build-arg "ESPHOME_VERSION=${ESPHOME_VERSION}" \
+    --tag "${DEV_IMAGE}" \
+    --file "${ROOT_DIR}/docker/Dockerfile" \
+    "${ROOT_DIR}"
+}
+
+ensure_image() {
+  if ! docker image inspect "${DEV_IMAGE}" >/dev/null 2>&1; then
+    build_image
+  fi
+}
+
+docker_args=(
+  --rm
+  --volume "${ROOT_DIR}:/workspace"
+  --volume "${PLATFORMIO_VOLUME}:/root/.platformio"
+  --volume "${ESPHOME_CACHE_VOLUME}:/workspace/.esphome"
+  --volume "${ESPHOME_CACHE_VOLUME}:/workspace/examples/.esphome"
+  --volume "${ESPHOME_CACHE_VOLUME}:/workspace/tests/.esphome"
+  --workdir /workspace
+)
+
+if [[ -t 0 && -t 1 ]]; then
+  docker_args+=(--interactive --tty)
+fi
+
+run_esphome() {
+  ensure_image
+  docker run "${docker_args[@]}" "${DEV_IMAGE}" "$@"
+}
+
+command="${1:-}"
+if [[ -z "${command}" ]]; then
+  usage
+  exit 1
+fi
+shift
+
+case "${command}" in
+  build)
+    build_image
+    ;;
+  version)
+    run_esphome version
+    ;;
+  config|compile|clean)
+    if [[ $# -ne 1 ]]; then
+      echo "The '${command}' command expects exactly one YAML file." >&2
+      exit 2
+    fi
+    run_esphome "${command}" "$1"
+    ;;
+  run)
+    if [[ $# -eq 0 ]]; then
+      echo "The 'run' command expects ESPHome CLI arguments." >&2
+      exit 2
+    fi
+    run_esphome "$@"
+    ;;
+  shell)
+    ensure_image
+    docker run "${docker_args[@]}" --entrypoint /bin/bash "${DEV_IMAGE}"
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: ${command}" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

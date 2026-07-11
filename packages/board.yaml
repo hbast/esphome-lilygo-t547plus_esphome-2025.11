@@ -1,0 +1,27 @@
+# Board configuration for LILYGO T5 4.7 Plus V2.3/V2.4 (ESP32-S3).
+esphome:
+  min_version: 2026.3.0
+  platformio_options:
+    upload_speed: 921600
+    board_build.arduino.memory_type: qio_opi
+    board_build.flash_mode: qio
+    build_flags:
+      - -DARDUINO_USB_CDC_ON_BOOT=1
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  cpu_frequency: 240MHz
+  flash_size: 16MB
+  framework:
+    type: arduino
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+i2c:
+  id: lilygo_t5_47_plus_i2c
+  sda: GPIO18
+  scl: GPIO17
+  frequency: 400kHz

@@ -1,0 +1,24 @@
+esphome:
+  name: lilygo-t5-47-plus-battery
+  friendly_name: LILYGO T5 4.7 Plus Battery
+
+packages:
+  lilygo_t5_47_plus: github://hbast/lilygo_t5_47_plus/packages/lilygo_t5_47_plus.yaml@main
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
+display:
+  - platform: lilygo_t5_47_plus
+    id: epaper
+    update_interval: 60s
+    lambda: |-
+      it.fill(COLOR_OFF);
+
+sensor:
+  - platform: lilygo_t5_47_plus
+    update_interval: 60s
+    battery_voltage:
+      name: Battery Voltage
+    battery_level:
+      name: Battery Level

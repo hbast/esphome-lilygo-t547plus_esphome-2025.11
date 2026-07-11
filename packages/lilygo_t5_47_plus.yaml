@@ -1,0 +1,9 @@
+packages:
+  board: !include board.yaml
+
+external_components:
+  - source: github://hbast/lilygo_t5_47_plus@main
+    components:
+      - lilygo_t5_47_plus
+    refresh: 1h
+

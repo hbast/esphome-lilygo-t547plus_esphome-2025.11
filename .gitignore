@@ -1,5 +1,7 @@
-/.esphome*
+**/.esphome/
 /*secrets.yaml
+.DS_Store
+.env
 *.pyc
 *.ttf
 venv*

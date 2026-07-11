@@ -1,63 +1,91 @@
-This repository contains a Display component for [ESPHome](https://esphome.io/) 2025.11+ 
-to support the ESP32-S3 [LILYGO T5 4.7" Plus E-paper display](https://www.lilygo.cc/products/t5-4-7-inch-e-paper-v2-3).
-For more info on the display components, see the [ESPHome display documentation](https://esphome.io/#display-components)
+# LILYGO T5 4.7 Plus for ESPHome
 
-**(Do not confuse it with the original ESP32-based Lilygo T5 4.7 board.)**
+External ESPHome component for the **LILYGO T5 4.7 Plus** E-Paper board with
+ESP32-S3 (hardware versions 2.3 and 2.4).
 
-![](readme-files/full_setup.jpg)
-<p align='center'><b>Image of full setup config</b></p>
+The repository provides one component name for all supported functions:
 
+- `display: platform: lilygo_t5_47_plus`
+- `touchscreen: platform: lilygo_t5_47_plus`
+- `sensor: platform: lilygo_t5_47_plus`
 
-> [!TIP]
-> The "dusty" marks on the image above are signs of e-ink screen fatigue.  
-> This will also happen to your display, so avoid frequent updates and rendering the same stuff over and over.
+The component requires the Arduino framework and an ESP32-S3 with 8 MB octal
+PSRAM. The display resolution is 960 x 540 pixels with 16 grayscale levels.
 
-## Contributions
-- Huge thanks to [@hbast](https://github.com/hbast) for ESP-IDF 5.4.2+ Compatibility!
+## Quick start
 
-
-## Usage (TLDR)
-To use the board with [ESPHome](https://esphome.io/), adjust your `.yaml` config:
-Make note how `platformio_options`, `libraries`, `esp32`, `sdkconfig_options` and `external_components` are set up in [basic setup](#basic-setup) below, these are important for the compilation stage.
-Make sure to `Clean build files` if you're editing your old `.yaml` configs. 
+The package configures the board, flash, PSRAM, I2C bus and external component.
+Only this repository needs to be referenced:
 
 ```yaml
-external_components:
-  - source: github://hbast/esphome-lilygo-t547plus_esphome-2025.11
-    components: ["t547"]
+esphome:
+  name: lilygo-t5-47-plus
+  friendly_name: LILYGO T5 4.7 Plus
+
+packages:
+  lilygo_t5_47_plus: github://hbast/lilygo_t5_47_plus/packages/lilygo_t5_47_plus.yaml@main
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
+display:
+  - platform: lilygo_t5_47_plus
+    id: epaper
+    update_interval: 60s
+    lambda: |-
+      it.fill(COLOR_OFF);
+      it.rectangle(20, 20, 920, 500, COLOR_ON);
 ```
 
+See [`examples/`](examples/) for display, grayscale, touchscreen, battery and
+deep-sleep configurations.
 
-## Usage (step by step)
-1. Open the esphome dashboard.
-2. Fill in the secrets with ssid and password of your Wi-Fi network.
-3. Create new device.
-4. In `New Device` wizard use `ESP32S3` board.
-5. You may install the firmware now or skip and apply the config directly from [basic.yaml](basic.yaml).
-6. Make sure to not override the `name`, `friendly_name`, `api` and `ota` sections with the example, cause the Wi-Fi update may might fail. The values there should be unique for every setup to make sure your device is secure!
-7. Flash the [basic setup](basic.yaml) or [full setup](full_setup.yaml) via OTA to confirm the connection does work.
-8. Now you can do whatever you want :)
+## Hardware configuration
 
-> [!IMPORTANT]
-> EspHome aggressively uses cache. 
-> Try using `Clean build files` on device card before `Install` if compilation fails.
+[`packages/board.yaml`](packages/board.yaml) is the single source of truth for
+the board:
 
-## Basic setup
+- ESP32-S3, Arduino framework
+- 16 MB QIO flash
+- 8 MB octal PSRAM at 80 MHz
+- GT911 I2C: SDA GPIO18, SCL GPIO17 at 400 kHz
+- Battery ADC: GPIO14
+- Wake/button input: GPIO21
 
-See [`basic.yaml`](basic.yaml) for a complete, working reference configuration.
+Do not copy PlatformIO or SDK configuration blocks into device YAML files. Use
+the package so board settings remain consistent with the component.
 
-**Key configuration requirements:**
-- Complete PSRAM initialization via `sdkconfig_options` (critical for ESP-IDF 5.4.2+)
-- Correct build flags with hardware workarounds
-- 16MB flash size (correct for hardware)
-- External components using GitHub source
+## Local development
 
-You can also use the [`full_setup.yaml`](full_setup.yaml) file to test most supported display features, including fetching time data from HomeAssistant.
+Python, PlatformIO and compiler toolchains are kept inside Docker:
 
+```sh
+./scripts/dev build
+./scripts/dev version
+./scripts/check-repository
+./scripts/dev config tests/minimal.yaml
+./scripts/dev compile tests/minimal.yaml
+```
 
-## Z-lib
-This branch does not support z-lib compressed fonts.
+See [`DEVELOPMENT.md`](DEVELOPMENT.md) for the full workflow.
 
+## Hardware support
 
-## Discussion
-https://github.com/esphome/feature-requests/issues/1960
+- V2.4 is the primary test target, including display, touch, battery and deep
+  sleep.
+- V2.3 uses the same ESP32-S3 display pinout. Boards without the optional touch
+  panel can omit the `touchscreen` section.
+- The original ESP32-based T5 4.7 board is not supported by this component.
+
+## Credits and license
+
+The E-Paper driver is derived from
+[`vroland/epdiy`](https://github.com/vroland/epdiy) and LilyGO's
+[`LilyGo-EPD47`](https://github.com/Xinyuan-LilyGO/LilyGo-EPD47). Source files
+retain their copyright and SPDX notices.
+
+The repository history also contains contributions from the earlier community
+implementations. These are acknowledged as provenance; they are not runtime or
+installation dependencies.
+
+See [`LICENSE`](LICENSE).

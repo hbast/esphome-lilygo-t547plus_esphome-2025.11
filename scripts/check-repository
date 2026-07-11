@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT_DIR}"
+
+if [[ -d components/t547 ]]; then
+  echo "Legacy component components/t547 must not exist." >&2
+  exit 1
+fi
+
+checked_paths=(README.md DEVELOPMENT.md components examples packages tests)
+if rg -n -i \
+  'dabelroman|dabalroman|hbast/esphome|esphome-lilygo|components/t547|platform:[[:space:]]*t547|lilygo-t547' \
+  "${checked_paths[@]}"; then
+  echo "Found a legacy component or repository reference." >&2
+  exit 1
+fi
+
+echo "Repository consistency checks passed."

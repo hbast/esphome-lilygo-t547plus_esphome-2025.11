@@ -1,0 +1,13 @@
+packages:
+  board: !include ../packages/board.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ../components
+    components:
+      - lilygo_t5_47_plus
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+

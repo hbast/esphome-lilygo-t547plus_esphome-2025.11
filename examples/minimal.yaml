@@ -1,0 +1,19 @@
+esphome:
+  name: lilygo-t5-47-plus-minimal
+  friendly_name: LILYGO T5 4.7 Plus Minimal
+
+packages:
+  lilygo_t5_47_plus: github://hbast/lilygo_t5_47_plus/packages/lilygo_t5_47_plus.yaml@main
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
+display:
+  - platform: lilygo_t5_47_plus
+    id: epaper
+    update_interval: 60s
+    lambda: |-
+      it.fill(COLOR_OFF);
+      it.rectangle(20, 20, 920, 500, COLOR_ON);
+      it.line(20, 20, 940, 520, COLOR_ON);
+      it.line(940, 20, 20, 520, COLOR_ON);
