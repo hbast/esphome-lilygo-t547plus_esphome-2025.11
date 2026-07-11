@@ -1,5 +1,5 @@
 esphome:
-  name: lilygo-t5-47-plus-test-deep-sleep
+  name: lilygo-t5-47-plus-test-sleep
   on_boot:
     priority: -100
     then:
