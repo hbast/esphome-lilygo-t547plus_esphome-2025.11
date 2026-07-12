@@ -119,8 +119,7 @@ Hardware results (V2.4):
 
 ## Phase 6: Public cleanup and release
 
-Status: in progress. The upstream PR is closed; release and feature-request
-cleanup remain.
+Status: complete.
 
 1. Close ESPHome pull request `esphome/esphome#14403` with a short note that the
    component will continue as an external component.
@@ -135,3 +134,11 @@ Acceptance:
 - The upstream PR no longer suggests that upstream integration is active.
 - The feature request contains one current, tested installation example.
 - The first release is reproducible from the Docker environment.
+
+Completed:
+
+- upstream pull request `esphome/esphome#14403` was closed;
+- obsolete installation instructions in the feature request were replaced with
+  the single-repository package example;
+- hardware-verified release `v1.0.0` was published and its public package and
+  examples were validated from GitHub.

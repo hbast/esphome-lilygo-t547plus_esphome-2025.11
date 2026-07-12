@@ -1,5 +1,6 @@
 **/.esphome/
 /artifacts/
+/examples/.gitignore
 /tests/.gitignore
 /*secrets.yaml
 .DS_Store
