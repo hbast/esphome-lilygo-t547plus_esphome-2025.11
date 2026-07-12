@@ -3,7 +3,7 @@ esphome:
   friendly_name: LILYGO T5 4.7 Plus Battery
 
 packages:
-  lilygo_t5_47_plus: github://hbast/lilygo_t5_47_plus/packages/lilygo_t5_47_plus.yaml@main
+  lilygo_t5_47_plus: github://hbast/lilygo_t5_47_plus/packages/lilygo_t5_47_plus.yaml@v1.0.0
 
 logger:
   hardware_uart: USB_SERIAL_JTAG

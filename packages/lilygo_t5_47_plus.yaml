@@ -2,8 +2,7 @@ packages:
   board: !include board.yaml
 
 external_components:
-  - source: github://hbast/lilygo_t5_47_plus@main
+  - source: github://hbast/lilygo_t5_47_plus@v1.0.0
     components:
       - lilygo_t5_47_plus
     refresh: 1h
-

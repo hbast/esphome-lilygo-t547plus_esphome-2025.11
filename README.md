@@ -23,7 +23,7 @@ esphome:
   friendly_name: LILYGO T5 4.7 Plus
 
 packages:
-  lilygo_t5_47_plus: github://hbast/lilygo_t5_47_plus/packages/lilygo_t5_47_plus.yaml@main
+  lilygo_t5_47_plus: github://hbast/lilygo_t5_47_plus/packages/lilygo_t5_47_plus.yaml@v1.0.0
 
 logger:
   hardware_uart: USB_SERIAL_JTAG
@@ -71,8 +71,10 @@ See [`DEVELOPMENT.md`](DEVELOPMENT.md) for the full workflow.
 
 ## Hardware support
 
-- V2.4 is the primary test target, including display, touch, battery and deep
-  sleep.
+- V2.4 is hardware-tested with display, correct black/white polarity, all 16
+  grayscale levels, transformed touch coordinates and timed deep sleep. The
+  battery sensor reports 0% correctly without a battery; measurement with a
+  connected LiPo remains to be verified.
 - V2.3 uses the same ESP32-S3 display pinout. Boards without the optional touch
   panel can omit the `touchscreen` section.
 - The original ESP32-based T5 4.7 board is not supported by this component.

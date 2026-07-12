@@ -37,6 +37,22 @@ To execute another ESPHome command:
 ./scripts/dev run --help
 ```
 
+## Flash from macOS without a host toolchain
+
+Docker Desktop cannot pass a macOS `/dev/cu.*` device directly into its Linux
+VM. The `flash` command uses the existing macOS Python standard library only as
+a byte bridge; `esptool` still runs inside Docker and nothing is installed.
+
+Put the ESP32-S3 into download mode (`STR_IO0` held while pressing `RST`), then
+flash a factory image located inside the repository:
+
+```sh
+./scripts/dev flash artifacts/firmware.factory.bin /dev/cu.usbmodem101
+```
+
+Press `RST` once after the verified write completes. Python 3 is required only
+for this optional macOS USB bridge, not for validation or compilation.
+
 For an interactive shell inside the container:
 
 ```sh

@@ -90,7 +90,7 @@ Acceptance:
 
 ## Phase 5: Docker-only verification
 
-Status: software checks complete; hardware smoke test pending.
+Status: complete for V2.4, except battery voltage with a connected LiPo.
 
 1. Validate the local minimal, full-coverage and deep-sleep test configurations
    with `esphome config` in Docker.
@@ -108,9 +108,19 @@ Acceptance:
 - Display polarity, touch, battery GPIO14 and deep-sleep shutdown have explicit
   hardware test results before the first release.
 
+Hardware results (V2.4):
+
+- white paper background and black logical pixels confirmed;
+- all 16 grayscale levels rendered;
+- touch markers appeared at the correct transformed coordinates;
+- no-battery state reported 0%; a connected LiPo was not available for voltage
+  validation;
+- timed deep sleep retained the E-Paper image and woke for the next refresh.
+
 ## Phase 6: Public cleanup and release
 
-Status: pending until the hardware smoke test passes.
+Status: in progress. The upstream PR is closed; release and feature-request
+cleanup remain.
 
 1. Close ESPHome pull request `esphome/esphome#14403` with a short note that the
    component will continue as an external component.

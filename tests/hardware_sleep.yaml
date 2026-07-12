@@ -1,0 +1,24 @@
+esphome:
+  name: lilygo-t5-47-plus-hw-sleep
+  on_boot:
+    priority: -100
+    then:
+      - component.update: epaper
+
+packages:
+  base: !include base.yaml
+
+display:
+  - platform: lilygo_t5_47_plus
+    id: epaper
+    update_interval: never
+    lambda: |-
+      it.fill(COLOR_OFF);
+      it.rectangle(10, 10, 940, 520, COLOR_ON);
+      it.line(40, 40, 920, 500, COLOR_ON);
+      it.line(920, 40, 40, 500, COLOR_ON);
+      it.filled_circle(480, 270, 50, COLOR_ON);
+
+deep_sleep:
+  run_duration: 20s
+  sleep_duration: 20s

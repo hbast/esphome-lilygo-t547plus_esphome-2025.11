@@ -51,16 +51,22 @@ void LilygoT5_47PlusDisplay::update() {
 void HOT LilygoT5_47PlusDisplay::draw_absolute_pixel_internal(int x, int y, Color color) {
   if (x >= this->get_width_internal() || y >= this->get_height_internal() || x < 0 || y < 0)
     return;
-  // EPD convention: 0x00=black, 0xFF=white — same as standard RGB luminance.
-  uint8_t gs = (color.red * 2126 / 10000) + (color.green * 7152 / 10000) + (color.blue * 722 / 10000);
+  // ESPHome's logical COLOR_ON is a marked pixel. On E-Paper that means black,
+  // while COLOR_OFF is the unmarked white paper background.
+  uint8_t luminance =
+      (color.red * 2126 / 10000) + (color.green * 7152 / 10000) + (color.blue * 722 / 10000);
+  uint8_t gs = 255 - luminance;
   epd_draw_pixel(x, y, gs, this->buffer_);
 }
 
 void LilygoT5_47PlusDisplay::fill(Color color) {
   if (this->buffer_ == nullptr)
     return;
-  // EPD convention: 0x00=black, 0xFF=white — same as standard RGB luminance.
-  uint8_t gs = (color.red * 2126 / 10000) + (color.green * 7152 / 10000) + (color.blue * 722 / 10000);
+  // Match draw_absolute_pixel_internal(): logical OFF is white paper and ON is
+  // black ink.
+  uint8_t luminance =
+      (color.red * 2126 / 10000) + (color.green * 7152 / 10000) + (color.blue * 722 / 10000);
+  uint8_t gs = 255 - luminance;
   // 4-bit per pixel: pack same value into both nibbles
   uint8_t fill_byte = (gs & 0xF0) | (gs >> 4);
   memset(this->buffer_, fill_byte, this->get_buffer_length_());
