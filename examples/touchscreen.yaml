@@ -1,0 +1,32 @@
+esphome:
+  name: lilygo-t5-47-plus-touch
+  friendly_name: LILYGO T5 4.7 Plus Touch
+
+packages:
+  lilygo_t5_47_plus: github://hbast/lilygo_t5_47_plus/packages/lilygo_t5_47_plus.yaml@v1.0.0
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
+display:
+  - platform: lilygo_t5_47_plus
+    id: epaper
+    update_interval: never
+    lambda: |-
+      it.fill(COLOR_OFF);
+      it.rectangle(20, 20, 920, 500, COLOR_ON);
+
+touchscreen:
+  - platform: lilygo_t5_47_plus
+    id: touch
+    display: epaper
+    i2c_id: lilygo_t5_47_plus_i2c
+    update_interval: 100ms
+    transform:
+      swap_xy: true
+      mirror_y: true
+    on_touch:
+      - lambda: |-
+          ESP_LOGI("touch", "Touch x=%d y=%d", touch.x, touch.y);
+    on_release:
+      - logger.log: Touch released

@@ -1,5 +1,9 @@
-/.esphome*
+**/.esphome/
+/artifacts/
+/tests/.gitignore
 /*secrets.yaml
+.DS_Store
+.env
 *.pyc
 *.ttf
 venv*

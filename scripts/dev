@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+
+ESPHOME_VERSION="${ESPHOME_VERSION:-2026.6}"
+DEV_IMAGE="${DEV_IMAGE:-lilygo-t5-47-plus-dev:${ESPHOME_VERSION}}"
+PLATFORMIO_VOLUME="${PLATFORMIO_VOLUME:-lilygo-t5-47-plus-platformio-${ESPHOME_VERSION}}"
+ESPHOME_CACHE_VOLUME="${ESPHOME_CACHE_VOLUME:-lilygo-t5-47-plus-cache-${ESPHOME_VERSION}}"
+
+usage() {
+  cat <<'EOF'
+Usage: ./scripts/dev <command> [arguments]
+
+Commands:
+  build                  Build the pinned ESPHome development image
+  version                Print the ESPHome version in the container
+  config <file.yaml>     Validate an ESPHome configuration
+  compile <file.yaml>    Compile firmware entirely inside Docker
+  flash <bin> <serial>   Flash a factory image through Docker Desktop on macOS
+  clean <file.yaml>      Remove build files for one configuration
+  run <args...>          Run any ESPHome CLI command
+  shell                  Open a shell in the development container
+
+Environment overrides:
+  ESPHOME_VERSION        ESPHome YEAR.MONTH image tag (default: 2026.6)
+  DEV_IMAGE              Local Docker image name
+  PLATFORMIO_VOLUME      Docker volume for PlatformIO toolchains
+  ESPHOME_CACHE_VOLUME   Docker volume for ESPHome build/cache files
+EOF
+}
+
+build_image() {
+  docker build \
+    --build-arg "ESPHOME_VERSION=${ESPHOME_VERSION}" \
+    --tag "${DEV_IMAGE}" \
+    --file "${ROOT_DIR}/docker/Dockerfile" \
+    "${ROOT_DIR}"
+}
+
+ensure_image() {
+  if ! docker image inspect "${DEV_IMAGE}" >/dev/null 2>&1; then
+    build_image
+  fi
+}
+
+docker_args=(
+  --rm
+  --volume "${ROOT_DIR}:/workspace"
+  --volume "${PLATFORMIO_VOLUME}:/root/.platformio"
+  --volume "${ESPHOME_CACHE_VOLUME}:/workspace/.esphome"
+  --volume "${ESPHOME_CACHE_VOLUME}:/workspace/examples/.esphome"
+  --volume "${ESPHOME_CACHE_VOLUME}:/workspace/tests/.esphome"
+  --workdir /workspace
+)
+
+if [[ -t 0 && -t 1 ]]; then
+  docker_args+=(--interactive --tty)
+fi
+
+run_esphome() {
+  ensure_image
+  docker run "${docker_args[@]}" "${DEV_IMAGE}" "$@"
+}
+
+flash_firmware() {
+  local firmware_path="$1"
+  local serial_path="$2"
+
+  if [[ ! -f "${firmware_path}" ]]; then
+    echo "Firmware image not found: ${firmware_path}" >&2
+    exit 2
+  fi
+  if [[ ! -e "${serial_path}" ]]; then
+    echo "Serial device not found: ${serial_path}" >&2
+    exit 2
+  fi
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "Flashing through Docker Desktop requires an existing Python 3 executable." >&2
+    exit 2
+  fi
+
+  local firmware_dir firmware_name firmware_absolute container_firmware
+  firmware_dir="$(cd -- "$(dirname -- "${firmware_path}")" && pwd)"
+  firmware_name="$(basename -- "${firmware_path}")"
+  firmware_absolute="${firmware_dir}/${firmware_name}"
+  case "${firmware_absolute}" in
+    "${ROOT_DIR}"/*)
+      container_firmware="/workspace/${firmware_absolute#"${ROOT_DIR}"/}"
+      ;;
+    *)
+      echo "Firmware image must be located inside the repository." >&2
+      exit 2
+      ;;
+  esac
+
+  ensure_image
+  python3 "${SCRIPT_DIR}/serial_bridge.py" "${serial_path}" &
+  local bridge_pid=$!
+  trap "kill ${bridge_pid} 2>/dev/null || true; wait ${bridge_pid} 2>/dev/null || true" EXIT
+  trap 'exit 130' INT TERM
+  sleep 1
+
+  docker run "${docker_args[@]}" \
+    --entrypoint python \
+    "${DEV_IMAGE}" \
+    -m esptool \
+    --port socket://host.docker.internal:3333 \
+    --baud 115200 \
+    --before no-reset \
+    --after no-reset \
+    write-flash 0x0 "${container_firmware}"
+
+  wait "${bridge_pid}" 2>/dev/null || true
+  trap - EXIT INT TERM
+}
+
+command="${1:-}"
+if [[ -z "${command}" ]]; then
+  usage
+  exit 1
+fi
+shift
+
+case "${command}" in
+  build)
+    build_image
+    ;;
+  version)
+    run_esphome version
+    ;;
+  config|compile|clean)
+    if [[ $# -ne 1 ]]; then
+      echo "The '${command}' command expects exactly one YAML file." >&2
+      exit 2
+    fi
+    run_esphome "${command}" "$1"
+    ;;
+  flash)
+    if [[ $# -ne 2 ]]; then
+      echo "The 'flash' command expects a factory BIN file and serial device." >&2
+      exit 2
+    fi
+    flash_firmware "$1" "$2"
+    ;;
+  run)
+    if [[ $# -eq 0 ]]; then
+      echo "The 'run' command expects ESPHome CLI arguments." >&2
+      exit 2
+    fi
+    run_esphome "$@"
+    ;;
+  shell)
+    ensure_image
+    docker run "${docker_args[@]}" --entrypoint /bin/bash "${DEV_IMAGE}"
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: ${command}" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

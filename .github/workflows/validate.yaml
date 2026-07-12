@@ -1,0 +1,45 @@
+name: Validate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check names and references
+        run: ./scripts/check-repository
+
+  esphome:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        esphome-version:
+          - "2026.3"
+          - "2026.6"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate configurations
+        env:
+          ESPHOME_VERSION: ${{ matrix.esphome-version }}
+        run: |
+          ./scripts/dev config tests/minimal.yaml
+          ./scripts/dev config tests/full.yaml
+          ./scripts/dev config tests/deep_sleep.yaml
+      - name: Compile full component coverage
+        env:
+          ESPHOME_VERSION: ${{ matrix.esphome-version }}
+        run: ./scripts/dev compile tests/full.yaml
+      - name: Compile deep-sleep coverage
+        if: matrix.esphome-version == '2026.6'
+        env:
+          ESPHOME_VERSION: ${{ matrix.esphome-version }}
+        run: ./scripts/dev compile tests/deep_sleep.yaml

@@ -1,0 +1,31 @@
+esphome:
+  name: lilygo-t5-47-plus-test-full
+
+packages:
+  base: !include base.yaml
+
+display:
+  - platform: lilygo_t5_47_plus
+    id: epaper
+    update_interval: 60s
+    lambda: |-
+      it.fill(COLOR_OFF);
+      it.rectangle(20, 20, 920, 500, COLOR_ON);
+
+touchscreen:
+  - platform: lilygo_t5_47_plus
+    display: epaper
+    i2c_id: lilygo_t5_47_plus_i2c
+    update_interval: 100ms
+    on_touch:
+      - logger.log:
+          format: "Touch at (%d, %d)"
+          args: [touch.x, touch.y]
+
+sensor:
+  - platform: lilygo_t5_47_plus
+    update_interval: 60s
+    battery_voltage:
+      name: Battery Voltage
+    battery_level:
+      name: Battery Level
